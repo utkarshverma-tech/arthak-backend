@@ -1,0 +1,65 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Profile {
+  id          String    @id @db.Uuid
+  email       String    @unique
+  fullName    String?   @map("full_name")
+  userType    String?   @map("user_type")
+  education   String?
+  currentYear String?   @map("current_year")
+  skills      String[]  @default([])
+  careerGoal  String?   @map("career_goal")
+  experience  String?
+  goal        String?
+  studyTime   String?   @map("study_time")
+  
+  // New user editable fields
+  location    String?
+  gender      String?
+  dob         String?
+  phone       String?
+  languages   String[]  @default([])
+  aboutMe     String?   @map("about_me")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  roadmaps    Roadmap[]
+
+  @@map("profiles")
+}
+
+model Roadmap {
+  id          String        @id @default(uuid()) @db.Uuid
+  userId      String        @map("user_id") @db.Uuid
+  title       String
+  description String?
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  user        Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nodes       RoadmapNode[]
+
+  @@map("roadmaps")
+}
+
+model RoadmapNode {
+  id          String   @id @default(uuid()) @db.Uuid
+  roadmapId   String   @map("roadmap_id") @db.Uuid
+  title       String
+  description String?
+  orderIndex  Int      @map("order_index")
+  isCompleted Boolean  @default(false) @map("is_completed")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  roadmap     Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+
+  @@map("roadmap_nodes")
+}
