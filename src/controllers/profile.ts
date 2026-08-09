@@ -72,6 +72,19 @@ export async function saveProfile(req: AuthenticatedRequest, res: Response) {
       aboutMe,
     } = req.body;
 
+    const targetEmail = email || req.body.email;
+    if (targetEmail) {
+      const existingEmailProfile = await prisma.profile.findUnique({
+        where: { email: targetEmail }
+      });
+      if (existingEmailProfile && existingEmailProfile.id !== userId) {
+        console.log(`Self-healing database: deleting stale profile for ${targetEmail} (ID: ${existingEmailProfile.id}) to link with new ID ${userId}`);
+        await prisma.profile.delete({
+          where: { id: existingEmailProfile.id }
+        });
+      }
+    }
+
     const row = await prisma.profile.upsert({
       where: { id: userId },
       create: {
